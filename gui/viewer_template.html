@@ -1,0 +1,813 @@
+<title>__TITLE__</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #F5F6F4;
+  --panel: #FFFFFF;
+  --ink: #1B2126;
+  --muted: #66707B;
+  --line: #D3D8D4;
+  --grid: #E4E8E4;
+  --g: #5A6570;
+  --d: #DC7A2E;
+  --l: #2B6BDF;
+  --o: #8E5FD6;
+  --total: #1B2126;
+  --cursor: #C93A2E;
+  --focus: #2B6BDF;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+  --sans: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171A; --panel: #1C2024; --ink: #E6E9EC; --muted: #98A2AD; --line: #2E353B; --grid: #242A2F;
+    --g: #9AA6B2; --d: #E68A3E; --l: #5B8EF0; --o: #B08BE8; --total: #E6E9EC; --cursor: #E2564A; --focus: #5B8EF0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171A; --panel: #1C2024; --ink: #E6E9EC; --muted: #98A2AD; --line: #2E353B; --grid: #242A2F;
+  --g: #9AA6B2; --d: #E68A3E; --l: #5B8EF0; --o: #B08BE8; --total: #E6E9EC; --cursor: #E2564A; --focus: #5B8EF0;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased;
+}
+.sheet { max-width: 1500px; margin: 0 auto; padding-block: 20px 36px; padding-inline: clamp(16px, 3vw, 40px); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(34px, 4vw, 48px); font-weight: 700; line-height: 1; letter-spacing: 0.01em; }
+h2 { font-size: 20px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); }
+.eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; font-weight: 500; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* ── title block ── */
+.titlebar {
+  display: flex; flex-wrap: wrap; gap: 18px 40px; align-items: flex-end; justify-content: space-between;
+  padding-bottom: 14px; margin-bottom: 22px; border-bottom: 2px solid var(--ink);
+}
+.titlebar .sub { margin: 6px 0 0; color: var(--muted); }
+.profile-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 12px; }
+.profile-pick > span { display: inline-flex; align-items: center; gap: 10px; }
+.profile-pick label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.profile-pick select {
+  font: 500 14px var(--mono); color: var(--ink); background: var(--panel); border: 1px solid var(--ink);
+  padding: 6px 10px; border-radius: 2px; min-width: 170px; cursor: pointer;
+}
+.profile-pick select:disabled { color: var(--muted); border-color: var(--line); cursor: progress; }
+.meta { display: flex; flex-wrap: wrap; gap: 0; margin: 0; }
+.meta > div { padding: 0 18px; border-left: 1px solid var(--line); }
+.meta > div:first-child { border-left: 0; padding-left: 0; }
+.meta dt { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.meta dd { margin: 2px 0 0; font-family: var(--mono); font-size: 13px; }
+
+/* ── main grid ── */
+.grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr); gap: 28px; align-items: start; }
+@media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+
+.charts { min-width: 0; }
+.chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 20px; margin-bottom: 6px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); }
+.toggles label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.toggles input { accent-color: var(--ink); margin: 0; }
+.swatch { display: inline-block; width: 14px; height: 0; border-top: 2px dashed currentColor; }
+.swatch.solid { border-top-style: solid; }
+canvas.chart { display: block; width: 100%; background: transparent; touch-action: none; cursor: crosshair; }
+#sig { height: 330px; }
+#part { height: 190px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); margin: 14px 0 4px; align-items: baseline; }
+.legend h2 { margin-right: 6px; }
+.legend .key { display: inline-flex; align-items: center; gap: 6px; }
+.legend .key i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; opacity: 0.85; }
+.hint { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+
+/* ── readout ── */
+.readout { border: 1px solid var(--line); background: var(--panel); padding: 18px 20px 20px; display: grid; gap: 22px; }
+.stat { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.stat:first-of-type { border-top: 0; padding-top: 0; }
+.stat .lab { color: var(--muted); font-size: 12px; }
+.stat .val { font-size: 26px; font-weight: 500; line-height: 1.1; }
+.stat .unit { color: var(--muted); font-size: 12px; margin-left: 4px; }
+.stat.minor .val { font-size: 18px; }
+.stat.minor .lab { display: inline-flex; align-items: center; gap: 8px; }
+.stat.minor .lab i { display: inline-block; width: 14px; height: 0; border-top: 2px dashed currentColor; }
+.bars { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.bars li { display: grid; grid-template-columns: 12px 96px 1fr 58px; align-items: center; gap: 10px; font-size: 13px; }
+.bars i.sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+.bar { height: 8px; background: var(--grid); position: relative; overflow: hidden; }
+.bar b { position: absolute; inset: 0 auto 0 0; display: block; }
+.pct { text-align: right; }
+@media (prefers-reduced-motion: no-preference) { .bar b { transition: width 120ms ease-out; } }
+
+.controls { display: grid; gap: 12px; }
+.controls label { font-size: 12px; color: var(--muted); display: block; }
+.controls label.check { display: flex; gap: 8px; align-items: center; color: var(--ink); cursor: pointer; }
+.controls input[type="range"] { width: 100%; accent-color: var(--l); margin: 4px 0 0; }
+.controls input[type="checkbox"] { accent-color: var(--l); margin: 0; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+button {
+  font: 500 13px var(--sans); color: var(--ink); background: var(--panel); border: 1px solid var(--ink);
+  padding: 6px 12px; cursor: pointer; border-radius: 2px;
+}
+button:hover { background: var(--ink); color: var(--bg); }
+.minima { display: grid; gap: 8px; }
+.minima button { display: grid; grid-template-columns: 12px 1fr; gap: 10px; align-items: start; text-align: left; padding: 10px 12px; border: 1px solid var(--line); line-height: 1.4; }
+.minima button i { width: 12px; height: 12px; margin-top: 4px; display: inline-block; }
+.minima button i.round { border-radius: 50%; }
+.minima button i.diamond { transform: rotate(45deg) scale(0.85); }
+.minima button i.dash { height: 0; border-top: 2px dashed currentColor; background: none !important; margin-top: 9px; }
+.minima button strong { display: block; font-weight: 600; }
+.minima button span { color: var(--muted); font-size: 12px; }
+.minima button:hover span { color: inherit; }
+.minima button:disabled { cursor: default; color: var(--muted); }
+.minima button:disabled:hover { background: var(--panel); color: var(--muted); }
+
+/* ── shapes ── */
+.shapes { margin-top: 34px; }
+.shape-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; margin-bottom: 12px; }
+.shape-head p { margin: 0; color: var(--muted); font-size: 13px; max-width: 70ch; }
+.shape-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1100px) { .shape-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .shape-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+figure.shape { margin: 0; border-top: 2px solid var(--line); padding-top: 8px; }
+figure.shape.total { border-top-color: var(--ink); }
+figure.shape figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; }
+figure.shape figcaption .name { font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; }
+figure.shape figcaption .pill { font-family: var(--mono); font-size: 12px; padding: 1px 7px; border-radius: 10px; color: var(--bg); }
+figure.shape canvas { display: block; width: 100%; aspect-ratio: 4 / 5; max-width: 100%; }
+.foot { margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; max-width: 90ch; }
+</style>
+
+<div class="sheet">
+  <header class="titlebar">
+    <div>
+      <p class="eyebrow">Buckling mode decomposition</p>
+      <h1 id="member">Member</h1>
+      <p class="sub" id="model">Conventional finite strip signature curve, decomposed in the cFSM G / D / L / O basis</p>
+      <div class="profile-pick" id="profile-pick" hidden>
+        <span><label for="profile">Profile</label><select id="profile"></select></span>
+        <span id="model-pick" hidden><label for="modelsel">Model</label><select id="modelsel"></select></span>
+      </div>
+    </div>
+    <dl class="meta">
+      <div><dt>Method</dt><dd id="meta-basis">cFSM elastic-corner base, component 2-norm</dd></div>
+      <div><dt>Subspaces</dt><dd id="meta-dims">G - D - L - O</dd></div>
+      <div><dt>Units</dt><dd id="meta-units">in., kip</dd></div>
+    </dl>
+  </header>
+
+  <main class="grid">
+    <section class="charts">
+      <div class="chart-head">
+        <h2>Signature curve</h2>
+        <div class="toggles" id="toggles"></div>
+      </div>
+      <canvas id="sig" class="chart" aria-label="Signature curve: critical load against half-wavelength, with cursor" role="img"></canvas>
+      <div class="legend">
+        <h2>Modal participation</h2>
+        <span class="key"><i style="background: var(--l)"></i>Local</span>
+        <span class="key"><i style="background: var(--d)"></i>Distortional</span>
+        <span class="key"><i style="background: var(--g)"></i>Global</span>
+        <span class="key"><i style="background: var(--o)"></i>Other</span>
+      </div>
+      <canvas id="part" class="chart" aria-label="Stacked modal participation against half-wavelength" role="img"></canvas>
+      <p class="hint">Click or drag on either chart to move the cursor; the arrow keys step one half-wavelength at a time.</p>
+    </section>
+
+    <aside class="readout" aria-label="Values at the cursor">
+      <div>
+        <p class="eyebrow">At the cursor</p>
+        <div class="stat"><span class="lab">Half-wavelength</span><span><span class="val mono" id="ro-L">-</span><span class="unit" id="ro-Lu">in.</span></span></div>
+        <div class="stat"><span class="lab">Critical load factor (conventional FSM)</span><span><span class="val mono" id="ro-P">-</span><span class="unit" id="ro-Pu">kip</span></span></div>
+        <div id="overlay-stats"></div>
+        <ul class="bars" id="bars"></ul>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="idx">Half-wavelength <span class="mono" id="idx-lab"></span></label>
+          <input type="range" id="idx" min="0" max="0" value="0" step="1">
+        </div>
+        <div class="btnrow">
+          <button type="button" id="prev" title="Previous half-wavelength">&larr; Prev</button>
+          <button type="button" id="next" title="Next half-wavelength">Next &rarr;</button>
+        </div>
+        <div>
+          <label for="amp">Deformation scale <span class="mono" id="amp-lab"></span></label>
+          <input type="range" id="amp" min="3" max="30" value="15" step="1">
+        </div>
+        <label class="check"><input type="checkbox" id="norm-each"> Draw every component at the same size (compare shapes, not magnitudes)</label>
+      </div>
+      <div>
+        <p class="eyebrow">Characteristic minima</p>
+        <div class="minima" id="minima"></div>
+      </div>
+    </aside>
+  </main>
+
+  <section class="shapes">
+    <div class="shape-head">
+      <h2>Buckled shape and its components</h2>
+      <p id="shape-caption"></p>
+    </div>
+    <div class="shape-grid" id="shape-grid"></div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var EMBEDDED = /*__DATA_JSON__*/;
+  var MANIFEST = /*__MANIFEST_JSON__*/;
+
+  var $ = function (s) { return document.querySelector(s); };
+  var CLASSES = [
+    { key: "L", name: "Local",        tok: "--l" },
+    { key: "D", name: "Distortional", tok: "--d" },
+    { key: "G", name: "Global",       tok: "--g" },
+    { key: "O", name: "Other",        tok: "--o" }
+  ];
+  var PANELS = [{ key: "total", name: "Total", tok: "--total" }].concat(
+    [CLASSES[2], CLASSES[1], CLASSES[0], CLASSES[3]]);   // Total, Global, Distortional, Local, Other
+
+  // Datasets register themselves here: window.__MD_REGISTER("63C37-056|Pcrl_gross", {...}).
+  var registry = {};
+  window.__MD_REGISTER = function (key, data) { registry[key] = data; };
+  function keyOf(member, model) { return member + "|" + (model || ""); }
+
+  // ── per-dataset state (set by applyData) ───────────────────────────────────
+  var DATA = null, N = 0, LOCAL = null, DIST = null, idx = 0;
+  var amp = 0.15, normEach = false, showOverlay = [], showRef = false;
+  var GX, GY, GT, dim, gcx, gcy, bw, bh, xmin, xmax;
+  var overlayStatEls = [], barEls = {}, shapeCanvases = {}, shapePills = {};
+
+  var toJs = function (i) { return (i === null || i === undefined) ? null : i - 1; };  // Julia 1-based -> JS 0-based
+  function tok(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function isNum(v) { return v !== null && v !== undefined && isFinite(v); }
+  function fmtL(v) { return v < 10 ? v.toFixed(3) : v < 100 ? v.toFixed(2) : v.toFixed(1); }
+  function fmtP(v) { return v >= 1000 ? v.toFixed(0) : v >= 100 ? v.toFixed(1) : v >= 10 ? v.toFixed(2) : v.toFixed(3); }
+  function fmtPct(v) { return v.toFixed(1) + " %"; }
+  function tickLabel(v) { return v >= 1 ? String(Math.round(v)) : String(v); }
+  function part(k, i) { return DATA.participation[k][i]; }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+  // Overlay value at the cursor's half-wavelength (index when the overlay
+  // shares the sweep, log-log interpolation otherwise); null where undefined.
+  function overlayValueAt(o, i) {
+    if (o.lengths.length === N && o.lengths[i] === DATA.lengths[i]) return isNum(o.values[i]) ? o.values[i] : null;
+    var L = DATA.lengths[i];
+    for (var k = 0; k < o.lengths.length - 1; k++) {
+      if (L >= o.lengths[k] && L <= o.lengths[k + 1]) {
+        var a = o.values[k], b = o.values[k + 1];
+        if (!isNum(a) || !isNum(b)) return null;
+        var t = (Math.log(L) - Math.log(o.lengths[k])) / (Math.log(o.lengths[k + 1]) - Math.log(o.lengths[k]));
+        return Math.exp(Math.log(a) + t * (Math.log(b) - Math.log(a)));
+      }
+    }
+    return null;
+  }
+  function overlayMinIndex(o) {
+    var bi = -1, bv = Infinity;
+    for (var k = 0; k < o.values.length; k++) { if (isNum(o.values[k]) && o.values[k] < bv) { bv = o.values[k]; bi = k; } }
+    return bi;
+  }
+  function nearestLengthIndex(L) {
+    var best = 0, bd = Infinity;
+    for (var i = 0; i < N; i++) { var d = Math.abs(Math.log(DATA.lengths[i]) - Math.log(L)); if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+
+  function setupCanvas(c) {
+    var dpr = window.devicePixelRatio || 1;
+    var r = c.getBoundingClientRect();
+    var w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+      c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+    }
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    return { ctx: ctx, w: w, h: h };
+  }
+  function logScale(x0, x1, p0, p1) {
+    var a = Math.log10(x0), b = Math.log10(x1);
+    return {
+      to: function (v) { return p0 + (Math.log10(v) - a) / (b - a) * (p1 - p0); },
+      from: function (p) { return Math.pow(10, a + (p - p0) / (p1 - p0) * (b - a)); }
+    };
+  }
+  function linScale(y0, y1, p0, p1) {
+    return { to: function (v) { return p0 + (v - y0) / (y1 - y0) * (p1 - p0); } };
+  }
+  var M = { l: 66, r: 18 };
+
+  function decades(lo, hi) {
+    var out = [];
+    for (var e = Math.ceil(Math.log10(lo) - 1e-9); e <= Math.floor(Math.log10(hi) + 1e-9); e++) out.push(Math.pow(10, e));
+    return out;
+  }
+  function minorTicks(lo, hi) {
+    var out = [];
+    for (var e = Math.floor(Math.log10(lo)); e <= Math.floor(Math.log10(hi)); e++) {
+      for (var m = 2; m <= 9; m++) { var v = m * Math.pow(10, e); if (v > lo && v < hi) out.push(v); }
+    }
+    return out;
+  }
+  function polyline(ctx, xs, ys) {
+    ctx.beginPath();
+    for (var i = 0; i < xs.length; i++) { if (i === 0) ctx.moveTo(xs[i], ys[i]); else ctx.lineTo(xs[i], ys[i]); }
+  }
+  // polyline that skips null/NaN values
+  function gappedLine(ctx, X, Y, Ls, Vs) {
+    ctx.beginPath();
+    var pen = false;
+    for (var q = 0; q < Ls.length; q++) {
+      if (!isNum(Vs[q])) { pen = false; continue; }
+      var px = X.to(Ls[q]), py = Y.to(Vs[q]);
+      if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  // polyline drawn in runs: segments flagged in `thin` (reduced/zero
+  // thickness, e.g. the hole strip) are drawn faint and dotted
+  function strokeRuns(ctx, xs, ys, thin, width, dash) {
+    if (!thin) { ctx.lineWidth = width; ctx.setLineDash(dash || []); polyline(ctx, xs, ys); ctx.stroke(); ctx.setLineDash([]); return; }
+    var i = 0, n = xs.length;
+    while (i < n - 1) {
+      var j = i;
+      while (j < n - 1 && !!thin[j] === !!thin[i]) j++;
+      ctx.save();
+      if (thin[i]) { ctx.lineWidth = Math.max(0.8, width * 0.4); ctx.globalAlpha *= 0.55; ctx.setLineDash([2, 3]); }
+      else { ctx.lineWidth = width; ctx.setLineDash(dash || []); }
+      polyline(ctx, xs.slice(i, j + 1), ys.slice(i, j + 1)); ctx.stroke();
+      ctx.restore();
+      i = j;
+    }
+  }
+
+  // ── signature curve ────────────────────────────────────────────────────────
+  function drawSig() {
+    var c = $("#sig"), S = setupCanvas(c), ctx = S.ctx, w = S.w, h = S.h;
+    var top = 14, bot = h - 12;
+    var X = logScale(xmin, xmax, M.l, w - M.r);
+    var vals = DATA.load_factor.slice();
+    if (showRef) vals = vals.concat(DATA.reference.values.filter(isNum));
+    var ymin = Math.min.apply(null, vals), ymax = Math.max.apply(null, vals);
+    var la = Math.log10(ymin), lb = Math.log10(ymax), padl = 0.06 * (lb - la);
+    var Y = logScale(Math.pow(10, la - padl), Math.pow(10, lb + padl), bot, top);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = tok("--grid");
+    decades(xmin, xmax).forEach(function (v) { var px = X.to(v); polyline(ctx, [px, px], [top, bot]); ctx.stroke(); });
+    var ydec = decades(Math.pow(10, la - padl), Math.pow(10, lb + padl));
+    ydec.forEach(function (v) { var py = Y.to(v); polyline(ctx, [M.l, w - M.r], [py, py]); ctx.stroke(); });
+    ctx.strokeStyle = tok("--line");
+    minorTicks(xmin, xmax).forEach(function (v) { var px = X.to(v); polyline(ctx, [px, px], [bot, bot - 4]); ctx.stroke(); });
+    polyline(ctx, [M.l, M.l, w - M.r], [top, bot, bot]); ctx.stroke();
+
+    ctx.fillStyle = tok("--muted");
+    ctx.font = "11px " + tok("--mono");
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    ydec.forEach(function (v) { ctx.fillText(tickLabel(v), M.l - 8, Y.to(v)); });
+    ctx.save();
+    ctx.translate(16, (top + bot) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "12px " + tok("--sans");
+    ctx.fillText("Critical load factor (" + DATA.units.load + ")", 0, 0);
+    ctx.restore();
+
+    var xs = DATA.lengths.map(X.to);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(M.l, top, w - M.l - M.r, bot - top); ctx.clip();
+    if (showRef) {
+      ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.strokeStyle = tok("--muted");
+      gappedLine(ctx, X, Y, DATA.reference.lengths, DATA.reference.values);
+    }
+    DATA.overlays.forEach(function (o, k) {
+      if (!showOverlay[k]) return;
+      ctx.setLineDash([6, 4]); ctx.lineWidth = 1.5; ctx.strokeStyle = o.color;
+      gappedLine(ctx, X, Y, o.lengths, o.values);
+      ctx.setLineDash([]);
+      var im = overlayMinIndex(o);
+      if (im >= 0) {
+        ctx.beginPath(); ctx.arc(X.to(o.lengths[im]), Y.to(o.values[im]), 5, 0, 2 * Math.PI);
+        ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      var vc = overlayValueAt(o, idx);
+      if (isNum(vc)) {
+        ctx.beginPath(); ctx.arc(xs[idx], Y.to(vc), 4, 0, 2 * Math.PI);
+        ctx.lineWidth = 1.5; ctx.stroke();
+      }
+    });
+    ctx.setLineDash([]);
+    var ys = DATA.load_factor.map(Y.to);
+    ctx.lineWidth = 1.8; ctx.strokeStyle = tok("--ink"); ctx.lineJoin = "round";
+    polyline(ctx, xs, ys); ctx.stroke();
+    ctx.fillStyle = tok("--ink");
+    for (var i = 0; i < N; i++) { ctx.beginPath(); ctx.arc(xs[i], ys[i], 1.6, 0, 2 * Math.PI); ctx.fill(); }
+    ctx.restore();
+
+    function marker(i, color, diamond) {
+      if (i === null) return;
+      var px = xs[i], py = ys[i];
+      ctx.beginPath();
+      if (diamond) { ctx.moveTo(px, py - 7); ctx.lineTo(px + 7, py); ctx.lineTo(px, py + 7); ctx.lineTo(px - 7, py); ctx.closePath(); }
+      else ctx.arc(px, py, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.lineWidth = 1.2; ctx.strokeStyle = tok("--ink"); ctx.stroke();
+    }
+    marker(LOCAL, tok("--l"), false);
+    marker(DIST, tok("--d"), true);
+
+    var cx = xs[idx], cy = ys[idx];
+    ctx.strokeStyle = tok("--cursor"); ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+    polyline(ctx, [cx, cx], [top, bot]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(cx, cy, 5, 0, 2 * Math.PI); ctx.fillStyle = tok("--cursor"); ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = tok("--panel"); ctx.stroke();
+    var label = "L " + fmtL(DATA.lengths[idx]) + " " + DATA.units.length + "   cr " + fmtP(DATA.load_factor[idx]) + " " + DATA.units.load;
+    ctx.font = "11px " + tok("--mono");
+    var tw = ctx.measureText(label).width + 14, th = 20;
+    var lx = cx + 12, ly = cy - th - 8;
+    if (lx + tw > w - M.r) lx = cx - 12 - tw;
+    if (ly < top) ly = cy + 10;
+    ctx.fillStyle = tok("--panel"); ctx.strokeStyle = tok("--line"); ctx.lineWidth = 1;
+    ctx.fillRect(lx, ly, tw, th); ctx.strokeRect(lx, ly, tw, th);
+    ctx.fillStyle = tok("--ink"); ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(label, lx + 7, ly + th / 2);
+  }
+
+  // ── participation ──────────────────────────────────────────────────────────
+  function drawPart() {
+    var c = $("#part"), S = setupCanvas(c), ctx = S.ctx, w = S.w, h = S.h;
+    var top = 8, bot = h - 34;
+    var X = logScale(xmin, xmax, M.l, w - M.r);
+    var Y = linScale(0, 100, bot, top);
+    var xs = DATA.lengths.map(X.to);
+
+    var lower = new Array(N).fill(0);
+    CLASSES.forEach(function (cl) {
+      var upper = lower.map(function (v, i) { return v + part(cl.key, i); });
+      ctx.beginPath();
+      for (var i = 0; i < N; i++) { var px = xs[i], py = Y.to(upper[i]); if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); }
+      for (var j = N - 1; j >= 0; j--) ctx.lineTo(xs[j], Y.to(lower[j]));
+      ctx.closePath();
+      ctx.globalAlpha = 0.78; ctx.fillStyle = tok(cl.tok); ctx.fill(); ctx.globalAlpha = 1;
+      lower = upper;
+    });
+
+    ctx.lineWidth = 1; ctx.strokeStyle = tok("--grid");
+    [25, 50, 75].forEach(function (v) { var py = Y.to(v); polyline(ctx, [M.l, w - M.r], [py, py]); ctx.stroke(); });
+    ctx.strokeStyle = tok("--line");
+    polyline(ctx, [M.l, M.l, w - M.r], [top, bot, bot]); ctx.stroke();
+    minorTicks(xmin, xmax).forEach(function (v) { var px = X.to(v); polyline(ctx, [px, px], [bot, bot + 4]); ctx.stroke(); });
+
+    ctx.fillStyle = tok("--muted");
+    ctx.font = "11px " + tok("--mono");
+    ctx.textAlign = "right"; ctx.textBaseline = "middle";
+    [0, 25, 50, 75, 100].forEach(function (v) { ctx.fillText(String(v), M.l - 8, Y.to(v)); });
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    decades(xmin, xmax).forEach(function (v) {
+      var px = X.to(v); ctx.strokeStyle = tok("--line"); polyline(ctx, [px, px], [bot, bot + 6]); ctx.stroke();
+      ctx.fillText(tickLabel(v), px, bot + 9);
+    });
+    ctx.font = "12px " + tok("--sans");
+    ctx.fillText("Elastic buckling half-wavelength (" + DATA.units.length + ")", (M.l + w - M.r) / 2, bot + 21);
+    ctx.save();
+    ctx.translate(16, (top + bot) / 2); ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("Participation (%)", 0, 0);
+    ctx.restore();
+
+    var cx = xs[idx];
+    ctx.strokeStyle = tok("--cursor"); ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+    polyline(ctx, [cx, cx], [top, bot]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // ── cross-section panels ───────────────────────────────────────────────────
+  function maxHypot(dx, dy) {
+    var m = 0;
+    for (var i = 0; i < dx.length; i++) { var v = Math.hypot(dx[i], dy[i]); if (v > m) m = v; }
+    return m;
+  }
+  function drawShape(c, comp, color) {
+    var S = setupCanvas(c), ctx = S.ctx, w = S.w, h = S.h;
+    var m = 6, s = Math.min((w - 2 * m) / bw, (h - 2 * m) / bh);
+    var cx = w / 2, cy = h / 2;
+    var X = function (x) { return cx + (x - gcx) * s; };
+    var Y = function (y) { return cy - (y - gcy) * s; };
+    ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.strokeStyle = tok("--ink"); ctx.globalAlpha = 0.5;
+    strokeRuns(ctx, GX.map(X), GY.map(Y), GT, 1, [4, 3]);
+    ctx.globalAlpha = 1;
+    var f = amp * dim;
+    if (normEach) { var mx = maxHypot(comp.dx, comp.dy); if (mx > 0) f = f / mx; }
+    var xs = [], ys = [];
+    for (var i = 0; i < GX.length; i++) { xs.push(X(GX[i] + f * comp.dx[i])); ys.push(Y(GY[i] + f * comp.dy[i])); }
+    ctx.strokeStyle = color;
+    strokeRuns(ctx, xs, ys, GT, 2.2, null);
+    if (comp.showCorners && DATA.main_nodes) {
+      ctx.fillStyle = tok("--ink");
+      for (var k = 0; k < DATA.main_nodes.X.length; k++) {
+        ctx.beginPath(); ctx.arc(X(DATA.main_nodes.X[k]), Y(DATA.main_nodes.Y[k]), 2.4, 0, 2 * Math.PI); ctx.fill();
+      }
+    }
+  }
+
+  function buildShapes() {
+    var grid = $("#shape-grid");
+    clear(grid); shapeCanvases = {}; shapePills = {};
+    PANELS.forEach(function (p) {
+      var fig = document.createElement("figure");
+      fig.className = "shape" + (p.key === "total" ? " total" : "");
+      var cap = document.createElement("figcaption");
+      var name = document.createElement("span"); name.className = "name"; name.textContent = p.name;
+      var pill = document.createElement("span"); pill.className = "pill mono"; pill.style.background = "var(" + p.tok + ")";
+      if (p.key === "total") { pill.textContent = "sum"; }
+      cap.appendChild(name); cap.appendChild(pill);
+      var cv = document.createElement("canvas");
+      cv.setAttribute("role", "img");
+      cv.setAttribute("aria-label", p.name + " component of the buckled cross-section at the cursor half-wavelength");
+      fig.appendChild(cap); fig.appendChild(cv); grid.appendChild(fig);
+      shapeCanvases[p.key] = cv; shapePills[p.key] = pill;
+    });
+  }
+  // total buckled shape = sum of the four components (they share one scale)
+  function totalShape(sh) {
+    if (sh.total) return sh.total;
+    var n = sh.G.dx.length, dx = new Array(n), dy = new Array(n);
+    for (var i = 0; i < n; i++) {
+      dx[i] = sh.G.dx[i] + sh.D.dx[i] + sh.L.dx[i] + sh.O.dx[i];
+      dy[i] = sh.G.dy[i] + sh.D.dy[i] + sh.L.dy[i] + sh.O.dy[i];
+    }
+    sh.total = { dx: dx, dy: dy };
+    return sh.total;
+  }
+  function drawShapes() {
+    var sh = DATA.shapes[idx];
+    PANELS.forEach(function (p) {
+      var comp = p.key === "total" ? totalShape(sh) : sh[p.key];
+      if (p.key === "total") comp = { dx: comp.dx, dy: comp.dy, showCorners: true };
+      drawShape(shapeCanvases[p.key], comp, tok(p.tok));
+      if (p.key !== "total") shapePills[p.key].textContent = fmtPct(part(p.key, idx));
+    });
+    var hasThin = GT && GT.some(function (t) { return t; });
+    $("#shape-caption").textContent =
+      "At L = " + fmtL(DATA.lengths[idx]) + " " + DATA.units.length + " (point " + (idx + 1) + " of " + N + "): " +
+      CLASSES.map(function (cl) { return cl.name + " " + fmtPct(part(cl.key, idx)); }).join(", ") + ". " +
+      (normEach ? "Every component is drawn at the same size, so compare shapes only."
+                : "Components share one scale, so a class's drawn size is its share of the total. Dashed line: undeformed section.") +
+      (hasThin ? " Faint dotted strip: zero-thickness hole element." : "");
+  }
+
+  // ── readout, controls, minima ──────────────────────────────────────────────
+  function buildOverlayStats() {
+    var box = $("#overlay-stats");
+    clear(box); overlayStatEls = [];
+    DATA.overlays.forEach(function (o, k) {
+      var row = document.createElement("div"); row.className = "stat minor";
+      var lab = document.createElement("span"); lab.className = "lab";
+      var sw = document.createElement("i"); sw.style.color = o.color;
+      lab.appendChild(sw); lab.appendChild(document.createTextNode(o.label));
+      var right = document.createElement("span");
+      var val = document.createElement("span"); val.className = "val mono"; val.id = "ro-ov-" + k;
+      var unit = document.createElement("span"); unit.className = "unit"; unit.textContent = DATA.units.load;
+      right.appendChild(val); right.appendChild(unit);
+      row.appendChild(lab); row.appendChild(right); box.appendChild(row);
+      overlayStatEls.push(val);
+    });
+  }
+  function buildBars() {
+    var ul = $("#bars");
+    clear(ul); barEls = {};
+    CLASSES.forEach(function (cl) {
+      var li = document.createElement("li");
+      var sw = document.createElement("i"); sw.className = "sw"; sw.style.background = "var(" + cl.tok + ")";
+      var nm = document.createElement("span"); nm.textContent = cl.name;
+      var bar = document.createElement("span"); bar.className = "bar";
+      var fill = document.createElement("b"); fill.style.background = "var(" + cl.tok + ")"; bar.appendChild(fill);
+      var pct = document.createElement("span"); pct.className = "pct mono";
+      li.appendChild(sw); li.appendChild(nm); li.appendChild(bar); li.appendChild(pct); ul.appendChild(li);
+      barEls[cl.key] = { fill: fill, pct: pct };
+    });
+  }
+  function updateReadout() {
+    $("#ro-L").textContent = fmtL(DATA.lengths[idx]);
+    $("#ro-P").textContent = fmtP(DATA.load_factor[idx]);
+    $("#idx-lab").textContent = "(" + (idx + 1) + " / " + N + ")";
+    DATA.overlays.forEach(function (o, k) {
+      var v = overlayValueAt(o, idx);
+      overlayStatEls[k].textContent = isNum(v) ? fmtP(v) : "-";
+    });
+    CLASSES.forEach(function (cl) {
+      var v = part(cl.key, idx);
+      barEls[cl.key].fill.style.width = Math.max(0, Math.min(100, v)) + "%";
+      barEls[cl.key].pct.textContent = fmtPct(v);
+    });
+  }
+  function minimaRow(box, swClass, color, title, text, onClick) {
+    var b = document.createElement("button"); b.type = "button";
+    var sw = document.createElement("i"); sw.className = swClass; sw.style.background = color; sw.style.color = color;
+    var txt = document.createElement("div");
+    var strong = document.createElement("strong"); strong.textContent = title;
+    var span = document.createElement("span");
+    if (onClick) { span.className = "mono"; b.addEventListener("click", onClick); } else { b.disabled = true; }
+    span.textContent = text;
+    txt.appendChild(strong); txt.appendChild(span);
+    b.appendChild(sw); b.appendChild(txt); box.appendChild(b);
+  }
+  function buildMinima() {
+    var box = $("#minima");
+    clear(box);
+    [{ i: LOCAL, name: "Local minimum", cls: "round", tok: "--l", key: "L" },
+     { i: DIST,  name: "Distortional minimum", cls: "diamond", tok: "--d", key: "D" }].forEach(function (mn) {
+      if (mn.i === null) {
+        minimaRow(box, mn.cls, "var(" + mn.tok + ")", mn.name, "No " + mn.key + "-dominated trough within the swept range.", null);
+      } else {
+        minimaRow(box, mn.cls, "var(" + mn.tok + ")", mn.name,
+          "L " + fmtL(DATA.lengths[mn.i]) + " " + DATA.units.length + "  -  cr " + fmtP(DATA.load_factor[mn.i]) + " " + DATA.units.load +
+          "  -  " + mn.key + " " + fmtPct(part(mn.key, mn.i)),
+          function () { setIdx(mn.i); });
+      }
+    });
+    DATA.overlays.forEach(function (o) {
+      var im = overlayMinIndex(o);
+      if (im < 0) {
+        minimaRow(box, "dash", o.color, o.label + " minimum", "No finite value in the swept range.", null);
+      } else {
+        minimaRow(box, "dash", o.color, o.label + " minimum",
+          "L " + fmtL(o.lengths[im]) + " " + DATA.units.length + "  -  cr " + fmtP(o.values[im]) + " " + DATA.units.load,
+          function () { setIdx(nearestLengthIndex(o.lengths[im])); });
+      }
+    });
+  }
+  function buildToggles() {
+    var box = $("#toggles");
+    clear(box);
+    function add(labelText, color, dashed, checked, onchange) {
+      var lab = document.createElement("label");
+      var inp = document.createElement("input"); inp.type = "checkbox"; inp.checked = checked;
+      inp.id = "tg-" + box.children.length;
+      inp.addEventListener("change", function () { onchange(inp.checked); redrawCharts(); });
+      var sw = document.createElement("span"); sw.className = "swatch" + (dashed ? "" : " solid"); sw.style.color = color;
+      lab.appendChild(inp); lab.appendChild(sw); lab.appendChild(document.createTextNode(labelText));
+      box.appendChild(lab);
+      return inp;
+    }
+    add("conventional FSM (decomposed)", "var(--ink)", false, true, function () {}).disabled = true;
+    DATA.overlays.forEach(function (o, k) { add(o.label, o.color, true, true, function (v) { showOverlay[k] = v; }); });
+    if (DATA.reference) add(DATA.reference.label, "var(--muted)", true, true, function (v) { showRef = v; });
+  }
+
+  // ── wiring ─────────────────────────────────────────────────────────────────
+  function redrawCharts() { if (!DATA) return; drawSig(); drawPart(); }
+  function update() { if (!DATA) return; updateReadout(); redrawCharts(); drawShapes(); }
+  function setIdx(i) {
+    if (!DATA) return;
+    idx = Math.max(0, Math.min(N - 1, i));
+    $("#idx").value = String(idx);
+    update();
+  }
+  function nearestIndex(px, canvas) {
+    var r = canvas.getBoundingClientRect();
+    var X = logScale(xmin, xmax, M.l, r.width - M.r);
+    var L = X.from(Math.max(M.l, Math.min(r.width - M.r, px)));
+    return nearestLengthIndex(L);
+  }
+  function attachScrub(canvas) {
+    var down = false;
+    canvas.addEventListener("pointerdown", function (e) {
+      if (!DATA) return;
+      down = true; canvas.setPointerCapture(e.pointerId);
+      setIdx(nearestIndex(e.clientX - canvas.getBoundingClientRect().left, canvas));
+    });
+    canvas.addEventListener("pointermove", function (e) {
+      if (!down || !DATA) return;
+      setIdx(nearestIndex(e.clientX - canvas.getBoundingClientRect().left, canvas));
+    });
+    var up = function () { down = false; };
+    canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
+  }
+
+  function applyData(data) {
+    DATA = data;
+    N = DATA.lengths.length;
+    LOCAL = toJs(DATA.minima.local_min);
+    DIST  = toJs(DATA.minima.distortional_min);
+    idx = LOCAL !== null ? LOCAL : (DIST !== null ? DIST : 0);
+    showOverlay = DATA.overlays.map(function () { return true; });
+    showRef = DATA.reference !== null && DATA.reference !== undefined;
+
+    GX = DATA.geometry.X; GY = DATA.geometry.Y; GT = DATA.geometry.thin || null;
+    var gxmin = Math.min.apply(null, GX), gxmax = Math.max.apply(null, GX);
+    var gymin = Math.min.apply(null, GY), gymax = Math.max.apply(null, GY);
+    dim = Math.max(gxmax - gxmin, gymax - gymin);
+    var gpad = 0.32 * dim;
+    gcx = (gxmin + gxmax) / 2; gcy = (gymin + gymax) / 2;
+    bw = (gxmax - gxmin) + 2 * gpad; bh = (gymax - gymin) + 2 * gpad;
+    xmin = DATA.lengths[0]; xmax = DATA.lengths[N - 1];
+
+    $("#member").textContent = DATA.member;
+    $("#model").textContent = DATA.model + " - conventional finite strip signature curve, decomposed in the cFSM G / D / L / O basis";
+    $("#meta-dims").textContent = "G " + DATA.counts.G + "  D " + DATA.counts.D + "  L " + DATA.counts.L + "  O " + DATA.counts.O;
+    $("#meta-units").textContent = DATA.units.length + ", " + DATA.units.load;
+    $("#ro-Lu").textContent = DATA.units.length; $("#ro-Pu").textContent = DATA.units.load;
+    var nCorner = DATA.main_nodes ? DATA.main_nodes.X.length : 0;
+    $("#foot").textContent = "Each half-wavelength's conventional (unconstrained) finite strip buckling mode d, computed on the actual rounded-corner section, " +
+      "is written as d = [R_G R_D R_L R_O] c in the constrained-FSM mechanical base vectors (Adany & Schafer); the drawn components d_M = R_M c_M " +
+      "sum back to the total shape and participation is the 2-norm of each component over the sum of the four. Rounded corners: the strictly " +
+      "membrane-strain-free (Vlasov) space is built with every fillet node as a main node, then one warping value per corner arc (" + nCorner +
+      " arcs, dotted on the total shape) is kept primary and the remaining arc-node warpings are statically condensed through the section's elastic " +
+      "stiffness, so each corner takes its minimum-energy shape (elastic-corner model); the condensed space orthogonal to G is Distortional, the " +
+      "leftover corner-arc bending directions are grouped with Local. Half-wavelengths swept: " + fmtL(xmin) + " to " + fmtL(xmax) + " " + DATA.units.length + " (" + N + " points).";
+
+    var slider = $("#idx");
+    slider.max = String(N - 1); slider.value = String(idx);
+    buildToggles(); buildOverlayStats(); buildBars(); buildMinima(); buildShapes();
+    update();
+  }
+
+  function setLoading(label, on) {
+    var a = $("#profile"), b = $("#modelsel");
+    if (a) a.disabled = on;
+    if (b) b.disabled = on;
+    if (on) $("#member").textContent = "Loading " + label + " ...";
+  }
+  function loadDataset(member, model) {
+    var key = keyOf(member, model);
+    if (registry[key]) { applyData(registry[key]); return; }
+    setLoading(member + " / " + model, true);
+    var s = document.createElement("script");
+    s.src = MANIFEST.dir + "/" + encodeURIComponent(member) + "__" + encodeURIComponent(model) + ".js";
+    s.onload = function () {
+      setLoading("", false);
+      if (registry[key]) applyData(registry[key]);
+      else $("#member").textContent = "No data registered for " + member + " / " + model;
+    };
+    s.onerror = function () { setLoading("", false); $("#member").textContent = "Could not load data for " + member + " / " + model; };
+    document.head.appendChild(s);
+  }
+
+  function init() {
+    if (EMBEDDED) registry[keyOf(EMBEDDED.member, EMBEDDED.model_key)] = EMBEDDED;
+
+    var slider = $("#idx");
+    slider.addEventListener("input", function () { setIdx(parseInt(slider.value, 10)); });
+    $("#prev").addEventListener("click", function () { setIdx(idx - 1); });
+    $("#next").addEventListener("click", function () { setIdx(idx + 1); });
+    var ampEl = $("#amp");
+    var setAmp = function () { amp = parseInt(ampEl.value, 10) / 100; $("#amp-lab").textContent = "(" + Math.round(amp * 100) + " % of section size)"; };
+    ampEl.addEventListener("input", function () { setAmp(); if (DATA) drawShapes(); });
+    setAmp();
+    $("#norm-each").addEventListener("change", function (e) { normEach = e.target.checked; if (DATA) drawShapes(); });
+    document.addEventListener("keydown", function (e) {
+      var t = e.target && e.target.tagName;
+      if (t === "INPUT" || t === "TEXTAREA" || t === "BUTTON" || t === "SELECT") return;
+      if (e.key === "ArrowLeft") { setIdx(idx - 1); e.preventDefault(); }
+      else if (e.key === "ArrowRight") { setIdx(idx + 1); e.preventDefault(); }
+    });
+    attachScrub($("#sig")); attachScrub($("#part"));
+
+    if (MANIFEST && MANIFEST.members && MANIFEST.members.length) {
+      $("#profile-pick").hidden = false;
+      var sel = $("#profile"), msel = $("#modelsel");
+      MANIFEST.members.forEach(function (m) {
+        var o = document.createElement("option"); o.value = m; o.textContent = m; sel.appendChild(o);
+      });
+      var models = MANIFEST.models || [];
+      if (models.length) {
+        $("#model-pick").hidden = false;
+        models.forEach(function (m) {
+          var o = document.createElement("option"); o.value = m.key; o.textContent = m.label; msel.appendChild(o);
+        });
+      }
+      var def = MANIFEST.default || {};
+      var startMember = (def.member && MANIFEST.members.indexOf(def.member) >= 0) ? def.member
+                      : (EMBEDDED ? EMBEDDED.member : MANIFEST.members[0]);
+      var startModel = models.length ? ((def.model && models.some(function (m) { return m.key === def.model; })) ? def.model : models[0].key) : "";
+      sel.value = startMember;
+      if (models.length) msel.value = startModel;
+      var reload = function () { loadDataset(sel.value, models.length ? msel.value : ""); };
+      sel.addEventListener("change", reload);
+      msel.addEventListener("change", reload);
+      loadDataset(startMember, startModel);
+    } else if (EMBEDDED) {
+      applyData(EMBEDDED);
+    }
+
+    window.addEventListener("resize", update);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", update);
+    new MutationObserver(update).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>

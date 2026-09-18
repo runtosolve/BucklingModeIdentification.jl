@@ -1,0 +1,7 @@
+Manifest.toml
+/output/
+/examples/output/
+*.png
+*.json
+!gui/*.html
+.DS_Store
